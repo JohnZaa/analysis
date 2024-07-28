@@ -1,37 +1,33 @@
 services:
-  backend:
+  data-analysis:
     build:
-      context: backend
+      context: data-analysis
       target: development
-    secrets:
-      - db-password
-    depends_on:
-      - db
-  db:
-    image: mariadb
-    restart: always
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent" ]
-      interval: 3s
-      retries: 5
-      start_period: 30s
-    secrets:
-      - db-password
-    volumes:
-      - db-data:/var/lib/mysql
-    environment:
-      - MYSQL_DATABASE=example
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
-    expose:
-      - 3306
-  proxy:
-    build: proxy
     ports:
-      - 8080:80
-    depends_on:
-      - backend
+      - 38080:8080
+    secrets:
+      - db-password
+  display:
+    build:
+      context: display
+      target: development
+    ports:
+      - 30000:3000
+      - 30080:80
+  db:
+    image: postgres:latest  # 使用Postgres数据库镜像
+    volumes:
+      - pg-data:/var/lib/postgresql/data  # 持久化存储
+    environment:
+      POSTGRES_USER: zhangjh
+      POSTGRES_PASSWORD: pass.123
+      POSTGRES_DB: analysis
+    ports:
+      - 35432:5432
 volumes:
-  db-data:
+  pg-data:
 secrets:
   db-password:
     file: db/password.txt
+networks:
+  dev-network: 
